@@ -16,6 +16,7 @@ import com.sun.tools.corba.se.idl.constExpr.Or;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.format.DateTimeFormat;
 import org.springframework.context.annotation.Bean;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.transaction.support.TransactionSynchronizationAdapter;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import pers.jun.controller.viewObject.OrderVo;
@@ -79,6 +80,9 @@ public class OrderServiceImpl implements OrderService {
 
     @Autowired
     private ItemStockMapper itemStockMapper;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
 
 
     /**
@@ -165,18 +169,20 @@ public class OrderServiceImpl implements OrderService {
      * 秒杀活动商品下单操作
      */
     @Override
-    public void createOrderPromo(OrderModel orderModel, String stockLogId) throws BusinessException {
+    public void createOrderPromo(Integer userId,Integer itemId,Integer promoId,Integer amount,Integer address,String stockLogId) throws BusinessException {
         // 用户合法性验证
         //UserModel userModel = userService.getUserByIdIncache(orderModel.getUserId());
         //if(userModel == null)
         //    throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR,"用户信息不合法");
 
-        // 商品合法性验证，同时之能秒杀一个商品
-        OrderItemModel orderItemModel = orderModel.getOrderItems().get(0);
-        Integer itemId = orderItemModel.getItemId();
-        Integer amount = orderItemModel.getAmount();
         //if(itemService.getByIdIncache(itemId) == null)
         //    throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR,"商品不合法");
+
+
+        // 商品合法性验证，同时之能秒杀一个商品
+        //OrderItemModel orderItemModel = orderModel.getOrderItems().get(0);
+        //Integer itemId = orderItemModel.getItemId();
+        //Integer amount = orderItemModel.getAmount();
 
         //默认每个用户只能下单十个
         if(amount < 0 || amount > 10){
@@ -199,14 +205,20 @@ public class OrderServiceImpl implements OrderService {
         }
 
         //设置订单默认状态和入库时间
-        orderModel.setStatus(0);
-        orderModel.setCreateDate(new Date());
-        orderModel.setFinishDate(new Date());
+        Order order = new Order();
+        order.setStatus(0);
+        order.setCreateDate(new Date());
+        order.setFinishDate(new Date());
+        order.setAddress(address);
+        order.setUserId(userId);
+        //从缓存中获取商品信息
+        ItemModel itemModel = (ItemModel) redisTemplate.opsForValue().get("item_validate_id_"+itemId);
+        order.setTotalPrice(itemModel.getPromoPrice().doubleValue());
         // 交易流水号，生成id
         String generateOrderNo = generateOrderNo();
-        orderModel.setId(generateOrderNo);
+        order.setId(generateOrderNo);
         // 订单入库
-        int insert = orderMapper.insertSelective(convertToOrder(orderModel));
+        int insert = orderMapper.insertSelective(order);
         if(insert < 1) {
             throw new BusinessException(EmBusinessError.ORDER_UNKOWN_ERROR,"添加订单未知错误");
         }
@@ -215,13 +227,17 @@ public class OrderServiceImpl implements OrderService {
         //添加订单条目
 
         // 设置所属订单id
-        orderItemModel.setOrderId(generateOrderNo);
+        OrderItem orderItem = new OrderItem();
+        orderItem.setOrderId(generateOrderNo);
 
         // 设置价格
-        orderItemModel.setPrice(orderModel.getTotalPrice().doubleValue());
+        orderItem.setPrice(itemModel.getPromoPrice().doubleValue());
+        orderItem.setItemId(itemId);
+        orderItem.setPromoId(promoId);
+        orderItem.setAmount(amount);
 
         // 4.添加订单item
-        orderItemService.insertOrderItem(converrToOrderItem(orderItemModel));
+        orderItemService.insertOrderItem(orderItem);
 
         // 5.更新商品销量
         //itemService.increaseSales(itemId, amount);

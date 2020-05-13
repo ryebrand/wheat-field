@@ -34,7 +34,7 @@ public interface OrderService {
     /**
      * 创建订单，下单活动商品
      */
-    void createOrderPromo(OrderModel orderModel,String stockLogId) throws BusinessException;
+    void createOrderPromo(Integer userId,Integer itemId,Integer promoId,Integer amount,Integer address,String stockLogId) throws BusinessException;
 
     /**
      * 查询所有订单

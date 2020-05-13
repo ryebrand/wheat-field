@@ -81,10 +81,6 @@ public class UserController extends BaseController {
         redisTemplate.opsForValue().set(token,userModel);
         redisTemplate.expire(token,30, TimeUnit.MINUTES);
 
-        //将用户登录凭证添加到用户session
-        //httpRequest.getSession().setAttribute("IS_LOGIN",true);
-        //httpRequest.getSession().setAttribute("LOGIN_USER",userModel);
-
         UserVo userVo = converFromUserModel(userModel);
         HashMap<String,Object> map = new HashMap<>();
         map.put("user",userVo);
@@ -168,15 +164,15 @@ public class UserController extends BaseController {
      * https://blog.csdn.net/u014745069/article/details/82050372
      */
     @UserLoginToken
-    @PutMapping("/setUserImg")
+    @PostMapping("/setUserImg")
     @ApiOperation(value = "设置用户头像")
-    public Object setUserImg(@RequestParam(required = true) MultipartFile profile) throws BusinessException {
+    public Object setUserImg(@RequestParam String imgData) throws BusinessException {
         UserModel userModel = AuthenticationInterceptor.userModelByToken;
         if(userModel == null) {
             throw new BusinessException(EmBusinessError.USER_NOT_LOGIN);
         }
 
-        boolean userProfile = userService.setUserImg(userModel.getId(), profile);
+        boolean userProfile = userService.setUserImg(userModel.getId(), imgData);
         if (!userProfile) {
             return CommonReturnType.create(null,"fail");
         }

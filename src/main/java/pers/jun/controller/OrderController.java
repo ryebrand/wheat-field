@@ -242,20 +242,20 @@ public class OrderController extends BaseController {
     @PostMapping(value = "/createPromo")
     @ApiOperation(value = "创建秒杀订单")
     public Object createPromo(
-            @RequestBody OrderModel orderModel,
-                              @RequestParam(name = "promoToken")String promoToken
-            //                  @RequestParam(name = "itemId")Integer itemId,
-            //                  @RequestParam(name = "promoId")Integer promoId,
-            //                  @RequestParam(name = "amount")Integer amount,
-            //                  @RequestParam(name = "address")Integer address
+            //@RequestBody OrderModel orderModel,
+                              @RequestParam(name = "promoToken")String promoToken,
+                              @RequestParam(name = "itemId")Integer itemId,
+                              @RequestParam(name = "promoId")Integer promoId,
+                              @RequestParam(name = "amount")Integer amount,
+                              @RequestParam(name = "address")Integer address
     ) throws BusinessException {
         //判断用户是否登录
         UserModel userModel = checkUserLogin();
 
-        OrderItemModel itemModel = orderModel.getOrderItems().get(0);
-        Integer itemId = itemModel.getItemId();
-        Integer promoId = itemModel.getPromoId();
-        Integer amount = itemModel.getAmount();
+        //OrderItemModel itemModel = orderModel.getOrderItems().get(0);
+        //Integer itemId = itemModel.getItemId();
+        //Integer promoId = itemModel.getPromoId();
+        //Integer amount = itemModel.getAmount();
 
         Integer userId = userModel.getId();
         //校验秒杀令牌是否正确
@@ -277,7 +277,7 @@ public class OrderController extends BaseController {
                 String stockLog = itemService.initStockLog(itemId, amount);
 
                 //再去完成对应的下单事务型消息机制
-                if (!mqProducer.transactionAsyncReduceStock(orderModel, stockLog)) {
+                if (!mqProducer.transactionAsyncReduceStock(userId,itemId,promoId,amount,address, stockLog)) {
                     throw new BusinessException(EmBusinessError.MQ_SEND_FAIL, "下单失败，库存不足或同步消息失败");
                 }
                 return null;

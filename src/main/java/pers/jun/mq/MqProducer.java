@@ -91,16 +91,21 @@ public class MqProducer {
                 //真正要做的事
                 //这里的arg就是sendMessageInTransaction传过来的参数
                 Map<String,Object> argMap = (Map)arg;
-                OrderModel orderModel = (OrderModel) argMap.get("orderModel");
+                //OrderModel orderModel = (OrderModel) argMap.get("orderModel");
                 String stockLogId = (String) argMap.get("stockLogId");
+                Integer userId = (Integer) argMap.get("userId");
+                Integer itemId = (Integer) argMap.get("itemId");
+                Integer promoId = (Integer) argMap.get("promoId");
+                Integer amount = (Integer) argMap.get("amount");
+                Integer address = (Integer) argMap.get("address");
 
                 try {
                     //调用orderservice执行下单逻辑
-                    orderService.createOrderPromo(orderModel,stockLogId);
+                    orderService.createOrderPromo(userId,itemId,promoId,amount,address,stockLogId);
                 } catch (BusinessException e) {
                     e.printStackTrace();
                     //如果操作失败，将库存流水状态更新为3，回滚缓存中的库存数量
-                    itemService.increaseStock(orderModel.getOrderItems().get(0).getItemId(),orderModel.getOrderItems().get(0).getAmount());
+                    itemService.increaseStock(itemId,amount);
 
                     StockLog stockLog = stockLogMapper.selectByPrimaryKey(stockLogId);
                     stockLog.setStatus(3);
@@ -109,6 +114,7 @@ public class MqProducer {
                 }
                 return LocalTransactionState.COMMIT_MESSAGE;
             }
+
 
             @Override
             public LocalTransactionState checkLocalTransaction(MessageExt msg) {
@@ -135,11 +141,11 @@ public class MqProducer {
     }
 
     //事务型同步扣减库存消息
-    public boolean transactionAsyncReduceStock(OrderModel orderModel,String stockLogId) {
+    public boolean transactionAsyncReduceStock(Integer userId,Integer itemId,Integer promoId,Integer amount,Integer address,String stockLogId) {
         // 获取参数值
-        OrderItemModel orderItemModel = orderModel.getOrderItems().get(0);
-        Integer itemId = orderItemModel.getItemId();
-        Integer amount = orderItemModel.getAmount();
+        //OrderItemModel orderItemModel = orderModel.getOrderItems().get(0);
+        //Integer itemId = orderItemModel.getItemId();
+        //Integer amount = orderItemModel.getAmount();
 
         // 将参数值发送出去
         Map<String,Object> map = new HashMap<>();
@@ -151,7 +157,11 @@ public class MqProducer {
 
         Map<String,Object> argsMap = new HashMap<>();
         argsMap.put("stockLogId",stockLogId);
-        argsMap.put("orderModel",orderModel);
+        argsMap.put("userId",userId);
+        argsMap.put("itemId",itemId);
+        argsMap.put("promoId",promoId);
+        argsMap.put("amount",amount);
+        argsMap.put("address",address);
 
         // 向中间件发送消息的返回值
         TransactionSendResult sendResult = null;

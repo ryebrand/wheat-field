@@ -30,10 +30,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.TimeUnit;
 
@@ -174,7 +171,54 @@ public class UserServiceImpl implements UserService {
         return true;
     }
 
-    @Transactional(rollbackFor = Exception.class)
+    /**
+     * 修改头像
+     */
+    @Override
+    public boolean setUserImg(Integer userId, String imgData) {
+        if(imgData == null){
+            return false;
+        }
+        User user = userMapper.selectByPrimaryKey(userId);
+        user.setImgUrl(imgData);
+        return userMapper.updateByPrimaryKeySelective(user) == 1;
+
+        /*if(imgData == null){
+            return false;
+        }
+
+        // 根据Windows和Linux配置不同的头像保存路径
+        String OSName = System.getProperty("os.name");
+        String profilesPath = OSName.toLowerCase().startsWith("win") ? WINDOWS_PROFILES_PATH : LINUX_PROFILES_PATH;
+
+
+        // 当前用户
+        User user = userMapper.selectByPrimaryKey(userId);
+        String imgUrl = user.getImgUrl();
+        // 默认以原来的头像名称为新头像的名称，这样可以直接替换掉文件夹中对应的旧头像
+        String newImgUrl = imgUrl;
+        // 若头像名称不存在
+        if (StringUtils.isBlank(imgUrl)) {
+            newImgUrl = profilesPath+ System.currentTimeMillis()+ "head_img.base64";
+            // 路径存库
+            user.setImgUrl(newImgUrl);
+            userMapper.updateByPrimaryKeySelective(user);
+        }
+        // 磁盘保存
+        FileWriter writer;
+        try {
+            writer = new FileWriter(newImgUrl);
+            writer.write(imgData);
+            writer.flush();
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return true;*/
+    }
+
+    /*@Transactional(rollbackFor = Exception.class)
     @Override
     public boolean setUserImg(Integer userId,MultipartFile newProfile) throws BusinessException {
         // 根据Windows和Linux配置不同的头像保存路径
@@ -223,7 +267,7 @@ public class UserServiceImpl implements UserService {
             throw new BusinessException(EmBusinessError.USER_UNKNOW_ERROR);
         }
         return true;
-    }
+    }*/
 
     /**
      * 两个bean之间的属性映射

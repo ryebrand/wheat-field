@@ -52,5 +52,5 @@ public interface UserService {
      * 设置用户头像
      * @param profile
      */
-    boolean setUserImg(Integer userId,MultipartFile profile) throws BusinessException;
+    boolean setUserImg(Integer userId,String profile) throws BusinessException;
 }

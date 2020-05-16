@@ -222,7 +222,6 @@ public class ItemController extends BaseController {
             //如果存在有未结束的活动
             itemVo.setStatus(itemModel.getPromoModel().getStatus());
             itemVo.setPromoId(itemModel.getPromoModel().getId());
-            itemVo.setPrice(itemModel.getPromoModel().getPromoItemPrice());
             itemVo.setStartDate(itemModel.getPromoModel().getStartDate().toString(DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss")));
             itemVo.setEndDate(itemModel.getPromoModel().getEndDate().toString(DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss")));
         }

@@ -144,10 +144,10 @@ public class OrderController extends BaseController {
         //判断用户是否登录
         UserModel userModel = checkUserLogin();
 
-        //response.setDateHeader("Expires", 0);
-        //response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
-        //response.addHeader("Cache-Control", "post-check=0, pre-check=0");
-        //response.setHeader("Pragma", "no-cache");
+        response.setDateHeader("Expires", 0);
+        response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+        response.addHeader("Cache-Control", "post-check=0, pre-check=0");
+        response.setHeader("Pragma", "no-cache");
         response.setContentType("image/jpeg");
 
         OutputStream os = response.getOutputStream();

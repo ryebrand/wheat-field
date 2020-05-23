@@ -29,6 +29,7 @@ public enum EmBusinessError implements CommonError {
     USER_NOT_EXIST(20001,"用户不存在"),
     USER_NOT_LOGIN(20002,"用户未登录或会话过期，请重新登录"),
     USER_UNKNOW_ERROR(20003,"用户信息未知错误"),
+    USER_IMG_TOO_BIG(20004,"头像太大，请重新选择头像"),
     //USER__SESSION_EXPIRE(20003,"用户会话过期，请重新登录"),
 
     //20000开头为购物车错误

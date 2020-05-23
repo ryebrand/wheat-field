@@ -156,6 +156,7 @@ public class UserController extends BaseController {
             throw new BusinessException(EmBusinessError.USER_NOT_LOGIN);
         }
         UserVo userVo = converFromUserModel(userModel);
+        userVo.setImgUrl(userService.getUserById(userModel.getId()).getImgUrl());
         return CommonReturnType.create(userVo);
     }
 
@@ -174,7 +175,7 @@ public class UserController extends BaseController {
 
         boolean userProfile = userService.setUserImg(userModel.getId(), imgData);
         if (!userProfile) {
-            return CommonReturnType.create(null,"fail");
+            throw new BusinessException(EmBusinessError.USER_IMG_TOO_BIG);
         }
         return CommonReturnType.create(null);
     }
